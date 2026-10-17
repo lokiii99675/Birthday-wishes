@@ -35,7 +35,7 @@
         duration: 1.5, visibility: "visible", stagger: 0.05,
       })
       .to(el.querySelector(".fake-btn"), {
-        duration: 0.1, backgroundColor: "rgb(127, 206, 248)",
+        duration: 0.1, backgroundColor: "var(--accent)",
       }, "+=4")
       .to(el.querySelector(".text-box"), {
         duration: 0.5, scale: 0.2, opacity: 0, y: -150,

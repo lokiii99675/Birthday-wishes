@@ -34,6 +34,47 @@ function createThemeToggle() {
   document.body.appendChild(btn);
 }
 
+// ── GSAP Loader ──────────────────────────────────────────────────
+// Waits for GSAP before anything tries to animate, and falls back to a
+// working CDN if the local copy is missing. Resolves false (instead of
+// throwing "gsap is not defined") when it truly cannot be loaded.
+function waitForGsap(timeout = 10000) {
+  return new Promise((resolve) => {
+    if (window.gsap) return resolve(true);
+
+    const CDN = "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js";
+    let pollId = null;
+
+    const done = (ok) => {
+      if (pollId) clearInterval(pollId);
+      resolve(ok);
+    };
+
+    // Poll for the global in case the script is simply still loading.
+    pollId = setInterval(() => {
+      if (window.gsap) done(true);
+    }, 100);
+
+    setTimeout(() => {
+      if (window.gsap) return done(true);
+      // Last resort: try the CDN.
+      const s = document.createElement("script");
+      s.src = CDN;
+      s.onload = () => done(!!window.gsap);
+      s.onerror = () => {
+        console.error(
+          "GSAP could not be loaded (local copy missing and no internet). " +
+          "Sections will be shown without animation."
+        );
+        done(false);
+      };
+      document.head.appendChild(s);
+    }, 1500);
+
+    setTimeout(() => done(!!window.gsap), timeout);
+  });
+}
+
 // ── Script Loader ────────────────────────────────────────────────
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -45,16 +86,58 @@ function loadScript(src) {
   });
 }
 
+// ── Music Loader ─────────────────────────────────────────────────
+// Probes the audio file first so a missing/renamed track never breaks
+// the animation (browsers report a failed <audio> load as a network error).
+function setMusicSource(audio, src) {
+  return new Promise((resolve) => {
+    const source = audio.querySelector("source");
+    if (!source) return resolve(false);
+
+    let settled = false;
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      resolve(ok);
+    };
+
+    // A HEAD request confirms the file exists before the browser tries to play it.
+    fetch(src, { method: "HEAD" })
+      .then((res) => {
+        if (!res.ok) return finish(false);
+        source.src = src;
+        audio.addEventListener("canplaythrough", () => finish(true), { once: true });
+        audio.addEventListener("error", () => finish(false), { once: true });
+        audio.load();
+        // Don't hang the animation if the file loads slowly.
+        setTimeout(() => finish(true), 2500);
+      })
+      .catch(() => {
+        console.warn("Music file not found: " + src + " — continuing without music.");
+        finish(false);
+      });
+  });
+}
+
 // ── Main ─────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   applyTheme(currentMode);
   createThemeToggle();
 
-  // Set music source
+  const loader = document.getElementById("loader");
+  const hideLoader = () => loader && loader.classList.add("is-hidden");
+
+  // Safety net — never leave the visitor staring at the curtain.
+  setTimeout(hideLoader, 6000);
+
+  // Make sure the animation library is ready before we use it.
+  const gsapReady = await waitForGsap();
+
+  // Set music source (only if the file is actually reachable)
   const audio = document.querySelector(".song");
+  let musicAvailable = false;
   if (audio && CONFIG.music) {
-    audio.querySelector("source").src = CONFIG.music;
-    audio.load();
+    musicAvailable = await setMusicSource(audio, CONFIG.music);
   }
 
   // Determine unique component types
@@ -83,8 +166,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     rendered.push({ el, comp, section });
   });
 
-  // SweetAlert music prompt
+  // SweetAlert music prompt (skipped when there is no playable music)
+  if (!musicAvailable) {
+    buildTimeline(rendered);
+    hideLoader();
+    return;
+  }
+
   const isDark = currentMode === "dark";
+
+  // If the SweetAlert CDN failed to load, skip the prompt and just play.
+  if (typeof Swal === "undefined") {
+    if (audio) audio.play().catch(() => {});
+    buildTimeline(rendered);
+    hideLoader();
+    return;
+  }
+
   Swal.fire({
     title: "Play music in the background?",
     icon: "question",
@@ -100,11 +198,40 @@ document.addEventListener("DOMContentLoaded", async () => {
       audio.play().catch(() => {});
     }
     buildTimeline(rendered);
+    hideLoader();
   });
 });
 
+// ── Fallback (no GSAP available) ─────────────────────────────────
+// Shows every section as a plain scrollable page so the message still
+// reaches the recipient instead of a blank screen.
+function renderFallback(rendered) {
+  document.documentElement.style.overflow = "auto";
+  document.body.style.overflow = "auto";
+
+  const container = document.querySelector(".container");
+  container.style.cssText =
+    "visibility:visible;height:auto;overflow:visible;padding:2rem 0;";
+
+  rendered.forEach(({ el }) => {
+    el.style.cssText =
+      "position:relative;inset:auto;opacity:1;visibility:visible;display:flex;" +
+      "min-height:70vh;pointer-events:auto;";
+    el.querySelectorAll("*").forEach((child) => {
+      if (getComputedStyle(child).opacity === "0") child.style.opacity = "1";
+      child.style.visibility = "visible";
+    });
+  });
+}
+
 // ── Timeline Builder ─────────────────────────────────────────────
 function buildTimeline(rendered) {
+  if (typeof gsap === "undefined") {
+    console.error("GSAP unavailable — rendering a static version of the page.");
+    renderFallback(rendered);
+    return;
+  }
+
   const tl = gsap.timeline();
 
   tl.to(".container", { duration: 0.6, visibility: "visible" });

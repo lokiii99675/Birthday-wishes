@@ -9,15 +9,30 @@ A beautiful, animated birthday greeting page built with **Vanilla JavaScript** a
 - 🌙 Dark / Light mode toggle
 - 📱 Responsive and mobile-friendly
 - 🎵 Optional background music
-- ⚡ No build step, no framework, no server required
+- 📦 **Works completely offline** — GSAP & SweetAlert2 are bundled in `vendor/`
+- 🛟 Graceful fallback: never a blank screen, even with no internet
+- ⚡ No build step and no framework — just `npm run dev`
 
 ## 🚀 Quick Start
 
 1. **Download or clone** this repository
 2. **Edit `config.js`** to customize the name, photo, message, and sections
-3. **Right-click `index.html`** → **Open with Live Server** (VS Code) or simply open it in your browser
+3. **Run the built-in dev server:**
 
-> **Tip:** If you use [VS Code](https://code.visualstudio.com/), install the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension. Then right-click `index.html` and select **"Open with Live Server"**. That's it!
+```bash
+npm run dev
+```
+
+Then open **http://localhost:3000** in your browser.
+
+> **Tip:** Use a server rather than double-clicking `index.html`. Opening the
+> file directly (`file://`) blocks audio playback in most browsers, so the
+> background music will not play. `npm run dev` needs **no install** — the
+> server is a single zero-dependency Node file (`server.js`).
+>
+> Want a different port? `npm run dev -- 5500`
+>
+> VS Code users can also just install the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension and right-click `index.html` → **"Open with Live Server"**.
 
 ---
 
@@ -162,6 +177,8 @@ Colorful sparks that burst and scatter in random directions. Overlays on top of 
 happybirthday/
 ├── config.js                ← ✨ EDIT THIS FILE ONLY
 ├── index.html               ← Page template (do not edit)
+├── package.json             ← `npm run dev` script
+├── server.js                ← Tiny zero-dependency dev server
 ├── script/
 │   ├── main.js              ← Engine (do not edit)
 │   └── components/          ← Section components
@@ -174,14 +191,34 @@ happybirthday/
 │       ├── stars.js
 │       ├── fireworks.js
 │       ├── balloons.js
+│       ├── gallery.js
 │       ├── profile.js
 │       ├── confetti.js
 │       └── closing.js
 ├── style/
 │   └── main.css             ← Styles (do not edit)
+├── vendor/                  ← GSAP + SweetAlert2 (bundled, offline-ready)
 ├── img/                     ← Put recipient's photo here
 └── music/                   ← Put background music here
 ```
+
+---
+
+## 📦 Offline / No-Internet Ready
+
+GSAP and SweetAlert2 are **bundled locally** in `vendor/`, so the page works
+with no internet connection at all:
+
+```
+vendor/
+├── gsap.min.js                 ← GSAP 3.12.5
+└── sweetalert2.all.min.js      ← SweetAlert2 11
+```
+
+`index.html` loads these local files first. If either one is missing, `main.js`
+automatically falls back to a CDN, and if there is no internet *either*, the
+page still shows every section as a static scrollable page instead of a blank
+screen — the message always reaches the recipient.
 
 ---
 

@@ -27,11 +27,69 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.5s ease, color 0.5s ease;
+  background-attachment: fixed;
+}
+
+/* Animated gradient overlay for premium feel */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255,107,157,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(201,169,110,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(147,102,196,0.06) 0%, transparent 50%);
+  pointer-events: none;
+  animation: bgShift 20s ease infinite;
+}
+
+@keyframes bgShift {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
 /* ── Audio ──────────────────────────────────────────────────────── */
 .song {
   display: none;
+}
+
+/* ── Loading Curtain ───────────────────────────────────────────── */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+}
+
+.loader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader-heart {
+  font-size: clamp(3rem, 12vw, 5rem);
+  animation: loaderPulse 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 24px rgba(255, 107, 157, 0.5));
+}
+
+@keyframes loaderPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ── Theme Toggle ──────────────────────────────────────────────── */
@@ -91,26 +149,52 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Greeting ──────────────────────────────────────────────────── */
+.greeting-prefix {
+  font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+  font-weight: 300;
+  opacity: 0.7;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
 .greeting-title {
-  font-size: clamp(2.5rem, 8vw, 4.5rem);
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: clamp(2.8rem, 9vw, 5rem);
+  font-weight: 800;
+  line-height: 1.1;
   max-width: 90%;
   overflow-wrap: break-word;
   word-break: break-word;
+  margin: 0.5rem 0;
 }
 
 .greeting-name {
   display: block;
-  color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), #ff8a5c, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(255,107,157,0.4));
+}
+
+.greeting-from {
+  font-size: clamp(0.95rem, 2.8vw, 1.3rem);
+  font-weight: 300;
+  opacity: 0.75;
+  letter-spacing: 1px;
+}
+
+.greeting-sender {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .greeting-subtitle {
   font-size: clamp(1rem, 3vw, 1.4rem);
   font-weight: 300;
-  margin-top: 0.8rem;
-  opacity: 0.65;
+  margin-top: 1rem;
+  opacity: 0.7;
   max-width: 80%;
+  font-style: italic;
 }
 
 /* ── Announcement ──────────────────────────────────────────────── */
@@ -370,6 +454,126 @@ body {
   position: absolute;
   width: 20px;
   visibility: hidden;
+}
+
+/* ── Gallery / Romantic Slideshow ──────────────────────────────── */
+.section-gallery {
+  z-index: 5;
+  background: radial-gradient(ellipse at center, rgba(255,107,157,0.10) 0%, transparent 70%);
+}
+
+.gallery-title {
+  font-size: clamp(1.5rem, 4.5vw, 2.6rem);
+  font-weight: 700;
+  margin-bottom: 0.9rem;
+  color: var(--primary);
+  text-shadow: 0 0 30px rgba(255,107,157,0.35);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+/* Stack all slides in one spot so they cross-fade in place */
+.slideshow {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The stage defines the photo's width; its height comes from the flex row. */
+.slideshow-stage {
+  position: relative;
+  width: min(86vw, 400px);
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+/* The photo — soft portrait frame with a romantic glow */
+.slide-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 107, 157, 0.35);
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.55),
+    0 0 44px rgba(255, 107, 157, 0.28);
+  background: rgba(128, 128, 128, 0.06);
+}
+
+.slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform-origin: center;
+}
+
+/* The love note underneath the photo */
+.slide-caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  max-width: 90vw;
+  padding: 0.2rem 1rem;
+  opacity: 0;
+}
+
+.slide-heart {
+  font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(255, 107, 157, 0.7));
+}
+
+.slide-text {
+  font-family: 'Great Vibes', 'Poppins', cursive;
+  font-size: clamp(1.5rem, 5.5vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--text);
+  text-shadow: 0 2px 22px rgba(255, 107, 157, 0.35);
+  overflow-wrap: break-word;
+}
+
+/* Progress dots */
+.slideshow-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: inline-block;
 }
 
 /* ── Closing ───────────────────────────────────────────────────── */

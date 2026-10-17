@@ -1,0 +1,23 @@
+{
+  "name": "happy-birthday",
+  "version": "2.0.0",
+  "private": true,
+  "description": "A beautiful, animated birthday greeting page — pure HTML/CSS/JS with GSAP. No build step required.",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "serve": "node server.js",
+    "build": "node -e \"console.log('No build step needed — this project is plain HTML/CSS/JS. Run \\\"npm run dev\\\" to preview.')\""
+  },
+  "keywords": [
+    "birthday",
+    "greeting",
+    "animation",
+    "gsap",
+    "confetti"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  }
+}
