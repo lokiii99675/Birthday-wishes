@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "package.json (local offline schema)",
+  "description": "Minimal local schema so VS Code never has to fetch schemastore.org. Offline-friendly.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "private": { "type": "boolean" },
+    "description": { "type": "string" },
+    "keywords": { "type": "array", "items": { "type": "string" } },
+    "license": { "type": "string" },
+    "author": {},
+    "type": { "type": "string" },
+    "main": { "type": "string" },
+    "module": { "type": "string" },
+    "browser": {},
+    "bin": {},
+    "scripts": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "devDependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "peerDependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "optionalDependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "engines": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "files": { "type": "array", "items": { "type": "string" } },
+    "workspaces": {},
+    "repository": {},
+    "bugs": {},
+    "homepage": { "type": "string" }
+  },
+  "additionalProperties": true
+}
